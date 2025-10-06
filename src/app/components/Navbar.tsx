@@ -27,7 +27,7 @@ export default function Navbar(): React.ReactElement {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-semibold text-black dark:text-white">
-            Admin Dashboard
+            Admin Dashboardd
           </h1>
           <Link
             href={"/"}
