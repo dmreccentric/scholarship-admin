@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import axios from "axios";
+// import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
+import api from "../../lib/api";
 
 interface Scholarship {
   _id: string;
@@ -33,7 +34,7 @@ export default function EditScholarshipPage() {
   useEffect(() => {
     const fetchScholarship = async () => {
       try {
-        const res = await axios.get(
+        const res = await api.get(
           `${process.env.NEXT_PUBLIC_API_URL}/scholarships/${id}`,
           { withCredentials: true }
         );
