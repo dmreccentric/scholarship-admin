@@ -101,7 +101,7 @@ export default function EditScholarshipPage() {
         formData.append("image", file);
       }
 
-      await axios.put(
+      await api.put(
         `${process.env.NEXT_PUBLIC_API_URL}/scholarships/${id}`,
         formData,
         {
