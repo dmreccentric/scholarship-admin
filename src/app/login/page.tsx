@@ -12,12 +12,18 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post(
+      const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
         { email, password },
-        { withCredentials: true } // important so cookie is stored
+        { withCredentials: true } // ✅ keeps cookies for normal browsers
       );
-      router.push("/scholarships"); // redirect after login
+
+      // ✅ Fallback for Safari: store token in sessionStorage
+      if (res.data?.data?.token) {
+        sessionStorage.setItem("token", res.data.data.token);
+      }
+
+      router.push("/scholarships");
     } catch (err: any) {
       setError(err.response?.data?.message || "Login failed");
     }
@@ -42,15 +48,6 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full border px-3 py-2 rounded"
         />
-        <p>
-          Don't have an account?{" "}
-          <span
-            className="text-blue-950 hover:cursor-pointer underline"
-            onClick={() => router.push("/register")}
-          >
-            Sign Up
-          </span>
-        </p>
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded"
