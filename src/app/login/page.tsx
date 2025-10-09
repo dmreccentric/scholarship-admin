@@ -9,10 +9,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setloading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setloading(true);
+
     try {
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
@@ -20,7 +23,6 @@ export default function LoginPage() {
         { withCredentials: true }
       );
 
-      // ✅ Fallback for Safari: store token in sessionStorage
       if (res.data?.data?.token) {
         sessionStorage.setItem("token", res.data.data.token);
       }
@@ -28,6 +30,8 @@ export default function LoginPage() {
       router.push("/scholarships");
     } catch (err: any) {
       setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setloading(false);
     }
   };
 
@@ -61,9 +65,16 @@ export default function LoginPage() {
           />
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 transition text-white font-semibold py-2 rounded-lg"
+            disabled={loading}
+            className={`w-full bg-blue-600 hover:bg-blue-700 transition text-white font-semibold py-2 rounded-lg
+              ${
+                loading
+                  ? "bg-blue-500 cursor-not-allowed"
+                  : "bg-blue-700 hover:bg-blue-800"
+              }
+              `}
           >
-            Login
+            {loading ? "logging in... " : "Login"}
           </button>
         </form>
 

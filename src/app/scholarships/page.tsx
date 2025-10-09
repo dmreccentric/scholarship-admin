@@ -60,10 +60,17 @@ export default function ScholarshipsPage() {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Scholarships</h2>
-
+    <div className="my-10">
       {error && <p className="text-red-500">{error}</p>}
+      <div className="flex space-x-10">
+        <h2 className="text-2xl font-bold mb-4">Scholarships</h2>
+        <Link
+          className="bg-gray-900 py-2 px-2 text-white text-center rounded-2xl items-center"
+          href="/scholarships/create"
+        >
+          Create Scholarship
+        </Link>
+      </div>
 
       {loading ? (
         <ul className="space-y-2 my-5">
@@ -138,13 +145,6 @@ export default function ScholarshipsPage() {
           ))}
         </ul>
       )}
-
-      <Link
-        className="bg-gray-900 py-1 px-2 text-white text-center rounded-2xl"
-        href="/scholarships/create"
-      >
-        Create Scholarship
-      </Link>
     </div>
   );
 }
