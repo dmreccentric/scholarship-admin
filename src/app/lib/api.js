@@ -17,4 +17,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// ✅ Response interceptor: handle 401s globally
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error.response?.status === 401) {
+      sessionStorage.removeItem("token"); // clear bad token
+      if (typeof window !== "undefined") {
+        Router.push("/login");
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
