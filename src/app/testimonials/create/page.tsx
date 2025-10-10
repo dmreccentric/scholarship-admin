@@ -12,6 +12,10 @@ interface Testimonial {
     public_id: string;
     resource_type?: "image" | "video";
   };
+  profilePicture?: {
+    url: string;
+    public_id: string;
+  };
 }
 
 export default function CreateTestimonialPage() {
@@ -22,7 +26,9 @@ export default function CreateTestimonialPage() {
     approved: false,
   });
   const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [profileFile, setProfileFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -35,20 +41,26 @@ export default function CreateTestimonialPage() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "media" | "profile"
+  ) => {
     if (e.target.files && e.target.files[0]) {
-      setMediaFile(e.target.files[0]);
+      if (type === "media") setMediaFile(e.target.files[0]);
+      else setProfileFile(e.target.files[0]);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) =>
         formData.append(key, value as any)
       );
       if (mediaFile) formData.append("media", mediaFile);
+      if (profileFile) formData.append("profilePicture", profileFile);
 
       await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/testimonials`,
@@ -62,6 +74,8 @@ export default function CreateTestimonialPage() {
       router.push("/testimonials");
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to create testimonial");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -75,7 +89,7 @@ export default function CreateTestimonialPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-200">
             Name
           </label>
           <input
@@ -84,13 +98,13 @@ export default function CreateTestimonialPage() {
             value={form.name || ""}
             onChange={handleChange}
             required
-            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-purple-500"
+            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black dark:text-white"
           />
         </div>
 
         {/* Message */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-200">
             Message
           </label>
           <textarea
@@ -98,24 +112,43 @@ export default function CreateTestimonialPage() {
             value={form.message || ""}
             onChange={handleChange}
             required
-            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-purple-500"
+            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black dark:text-white"
           />
+        </div>
+
+        {/* Profile Picture Upload */}
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-200">
+            Profile Picture
+          </label>
+          <input
+            type="file"
+            name="profilePicture"
+            accept="image/*"
+            onChange={(e) => handleFileChange(e, "profile")}
+            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black dark:text-white"
+          />
+          {profileFile && (
+            <img
+              src={URL.createObjectURL(profileFile)}
+              alt="Profile preview"
+              className="h-32 w-32 object-cover rounded-full mt-3 mx-auto border"
+            />
+          )}
         </div>
 
         {/* Media Upload */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-200">
             Upload Image or Video
           </label>
           <input
             type="file"
             name="media"
             accept="image/*,video/*"
-            onChange={handleFileChange}
-            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-purple-500"
+            onChange={(e) => handleFileChange(e, "media")}
+            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black dark:text-white"
           />
-
-          {/* Preview */}
           {mediaFile && (
             <div className="mt-3">
               {mediaFile.type.startsWith("video/") ? (
@@ -127,7 +160,7 @@ export default function CreateTestimonialPage() {
               ) : (
                 <img
                   src={URL.createObjectURL(mediaFile)}
-                  alt="Preview"
+                  alt="Media preview"
                   className="h-40 w-full object-cover rounded-md"
                 />
               )}
@@ -147,11 +180,13 @@ export default function CreateTestimonialPage() {
           <span>Approved</span>
         </label>
 
+        {/* Submit */}
         <button
           type="submit"
-          className="w-full py-2 px-4 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+          disabled={submitting}
+          className="w-full py-2 px-4 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center justify-center disabled:opacity-60"
         >
-          Create Testimonial
+          {submitting ? "Creating..." : "Create Testimonial"}
         </button>
       </form>
     </div>

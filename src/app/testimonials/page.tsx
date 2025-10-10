@@ -9,10 +9,15 @@ interface Testimonial {
   name: string;
   message: string;
   approved: boolean;
+  profilePicture?: {
+    url: string;
+    public_id: string;
+    resource_type?: "image";
+  };
   media?: {
     url: string;
     public_id: string;
-    resource_type?: "image" | "video"; // ✅ supports video too
+    resource_type?: "image" | "video";
   };
 }
 
@@ -97,40 +102,51 @@ export default function TestimonialsPage() {
           ))}
         </ul>
       ) : (
-        <ul className="space-y-2 my-5">
+        <ul className="space-y-4 my-5">
           {testimonials.map((t) => (
             <li
               key={t._id}
-              className="border p-4 rounded-md flex items-center justify-between"
+              className="border p-4 rounded-md flex items-center space-x-4"
             >
-              {t.media?.url ? (
-                t.media.resource_type === "video" ? (
-                  <div className="flex-shrink-0 w-40 h-60 rounded-lg overflow-hidden bg-black">
-                    <video
-                      src={t.media.url}
-                      controls
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <img
-                    src={t.media.url}
-                    alt={t.name}
-                    className="h-16 w-16 object-cover rounded-full flex-shrink-0"
-                  />
-                )
+              {/* ✅ Profile Picture */}
+              {t.profilePicture?.url ? (
+                <img
+                  src={t.profilePicture.url}
+                  alt={t.name + " profile"}
+                  className="h-16 w-16 object-cover rounded-full flex-shrink-0 border-2 border-purple-500"
+                />
               ) : (
-                <div className="h-16 w-16 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-sm">
-                  No Media
+                <div className="h-16 w-16 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-sm flex-shrink-0 border-2 border-gray-300">
+                  No Profile
                 </div>
               )}
 
-              <div className="flex-1 ml-4">
+              <div className="flex-1">
                 <h3 className="font-semibold">{t.name}</h3>
                 <p className="text-sm text-gray-600">{t.message}</p>
+
+                {/* ✅ Testimonial media */}
+                {t.media?.url && (
+                  <div className="mt-2">
+                    {t.media.resource_type === "video" ? (
+                      <video
+                        src={t.media.url}
+                        controls
+                        className="h-40 w-full rounded-md object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={t.media.url}
+                        alt={t.name + " media"}
+                        className="h-40 w-full rounded-md object-cover"
+                      />
+                    )}
+                  </div>
+                )}
               </div>
 
-              <div className="space-x-2">
+              {/* ✅ Actions */}
+              <div className="space-y-2 flex flex-col">
                 <button
                   onClick={() => handleEdit(t._id)}
                   disabled={deletingId === t._id}

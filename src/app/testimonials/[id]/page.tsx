@@ -12,22 +12,26 @@ interface Testimonial {
     public_id: string;
     resource_type?: "image" | "video";
   };
+  profilePicture?: {
+    url: string;
+    public_id: string;
+  };
 }
 
 export default function EditTestimonialPage() {
   const router = useRouter();
-  const { id } = useParams(); // ✅ Get ID from URL
+  const { id } = useParams();
   const [form, setForm] = useState<Partial<Testimonial>>({
     name: "",
     message: "",
     approved: false,
   });
   const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [profileFile, setProfileFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Fetch existing testimonial on mount
   useEffect(() => {
     const fetchTestimonial = async () => {
       try {
@@ -42,7 +46,6 @@ export default function EditTestimonialPage() {
         setLoading(false);
       }
     };
-
     if (id) fetchTestimonial();
   }, [id]);
 
@@ -57,9 +60,13 @@ export default function EditTestimonialPage() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "media" | "profile"
+  ) => {
     if (e.target.files && e.target.files[0]) {
-      setMediaFile(e.target.files[0]);
+      if (type === "media") setMediaFile(e.target.files[0]);
+      else setProfileFile(e.target.files[0]);
     }
   };
 
@@ -67,17 +74,13 @@ export default function EditTestimonialPage() {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
-
     try {
       const formData = new FormData();
       formData.append("name", form.name || "");
       formData.append("message", form.message || "");
       formData.append("approved", String(form.approved || false));
-
-      // ✅ Only include new media if one is uploaded
-      if (mediaFile) {
-        formData.append("media", mediaFile);
-      }
+      if (mediaFile) formData.append("media", mediaFile);
+      if (profileFile) formData.append("profilePicture", profileFile);
 
       await axios.put(
         `${process.env.NEXT_PUBLIC_API_URL}/testimonials/${id}`,
@@ -109,7 +112,7 @@ export default function EditTestimonialPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-200">
             Name
           </label>
           <input
@@ -118,13 +121,13 @@ export default function EditTestimonialPage() {
             value={form.name || ""}
             onChange={handleChange}
             required
-            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-purple-500"
+            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black dark:text-white"
           />
         </div>
 
         {/* Message */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-200">
             Message
           </label>
           <textarea
@@ -132,23 +135,56 @@ export default function EditTestimonialPage() {
             value={form.message || ""}
             onChange={handleChange}
             required
-            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-purple-500"
+            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black dark:text-white"
           />
+        </div>
+
+        {/* Profile Picture Upload */}
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-200">
+            Profile Picture
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleFileChange(e, "profile")}
+            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black dark:text-white"
+          />
+
+          {/* Preview Section */}
+          <div className="mt-3 flex flex-col items-center">
+            {profileFile ? (
+              <img
+                src={URL.createObjectURL(profileFile)}
+                alt="New profile"
+                className="h-32 w-32 object-cover rounded-full border"
+              />
+            ) : form.profilePicture?.url ? (
+              <img
+                src={form.profilePicture.url}
+                alt="Current profile"
+                className="h-32 w-32 object-cover rounded-full border"
+              />
+            ) : (
+              <div className="h-32 w-32 rounded-full border-2 border-dashed flex items-center justify-center text-gray-400">
+                No Profile Picture
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Media Upload */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-200">
             Upload New Image or Video (optional)
           </label>
           <input
             type="file"
             accept="image/*,video/*"
-            onChange={handleFileChange}
-            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-purple-500"
+            onChange={(e) => handleFileChange(e, "media")}
+            className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black dark:text-white"
           />
 
-          {/* Preview Section */}
           <div className="mt-3">
             {mediaFile ? (
               mediaFile.type.startsWith("video/") ? (
@@ -160,7 +196,7 @@ export default function EditTestimonialPage() {
               ) : (
                 <img
                   src={URL.createObjectURL(mediaFile)}
-                  alt="Preview"
+                  alt="New media"
                   className="h-40 w-full object-cover rounded-md"
                 />
               )
@@ -174,12 +210,12 @@ export default function EditTestimonialPage() {
               ) : (
                 <img
                   src={form.media.url}
-                  alt={form.name}
+                  alt="Existing media"
                   className="h-40 w-full object-cover rounded-md"
                 />
               )
             ) : (
-              <div className="h-40 w-full flex items-center justify-center border-2 border-dashed text-gray-400 rounded-md">
+              <div className="h-40 flex items-center justify-center border-2 border-dashed text-gray-400 rounded-md">
                 No Media Uploaded
               </div>
             )}
@@ -198,35 +234,13 @@ export default function EditTestimonialPage() {
           <span>Approved</span>
         </label>
 
-        {/* Submit Button */}
+        {/* Submit */}
         <button
           type="submit"
           disabled={submitting}
           className="w-full py-2 px-4 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center justify-center disabled:opacity-60"
         >
-          {submitting && (
-            <svg
-              className="animate-spin mr-2 h-5 w-5 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-              ></path>
-            </svg>
-          )}
-          {submitting ? "Editing..." : "Save Changes"}
+          {submitting ? "Saving..." : "Save Changes"}
         </button>
       </form>
     </div>
