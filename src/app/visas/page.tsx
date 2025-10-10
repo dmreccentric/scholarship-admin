@@ -60,7 +60,18 @@ export default function VisasPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Visas</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-10 mb-6 space-y-3 sm:space-y-0">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          Visas
+        </h2>
+
+        <Link
+          href="/visas/create"
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition-all duration-200"
+        >
+          + Create Visa
+        </Link>
+      </div>
 
       {error && <p className="text-red-500">{error}</p>}
 
@@ -127,13 +138,6 @@ export default function VisasPage() {
           ))}
         </ul>
       )}
-
-      <Link
-        className="bg-gray-900 py-1 px-2 text-white text-center rounded-2xl"
-        href="/visas/create"
-      >
-        Create Visa
-      </Link>
     </div>
   );
 }

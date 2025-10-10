@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
 interface Testimonial {
   name: string;
@@ -14,15 +14,37 @@ interface Testimonial {
   };
 }
 
-export default function CreateTestimonialPage() {
+export default function EditTestimonialPage() {
   const router = useRouter();
+  const { id } = useParams(); // ✅ Get ID from URL
   const [form, setForm] = useState<Partial<Testimonial>>({
     name: "",
     message: "",
     approved: false,
   });
   const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ✅ Fetch existing testimonial on mount
+  useEffect(() => {
+    const fetchTestimonial = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/testimonials/${id}`,
+          { withCredentials: true }
+        );
+        setForm(res.data.data);
+      } catch (err: any) {
+        setError(err.response?.data?.message || "Failed to load testimonial");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchTestimonial();
+  }, [id]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -43,15 +65,22 @@ export default function CreateTestimonialPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+
     try {
       const formData = new FormData();
-      Object.entries(form).forEach(([key, value]) =>
-        formData.append(key, value as any)
-      );
-      if (mediaFile) formData.append("media", mediaFile);
+      formData.append("name", form.name || "");
+      formData.append("message", form.message || "");
+      formData.append("approved", String(form.approved || false));
 
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/testimonials`,
+      // ✅ Only include new media if one is uploaded
+      if (mediaFile) {
+        formData.append("media", mediaFile);
+      }
+
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_API_URL}/testimonials/${id}`,
         formData,
         {
           withCredentials: true,
@@ -61,14 +90,19 @@ export default function CreateTestimonialPage() {
 
       router.push("/testimonials");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to create testimonial");
+      setError(err.response?.data?.message || "Failed to update testimonial");
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  if (loading)
+    return <p className="text-center text-gray-600">Loading testimonial...</p>;
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-900 shadow-md rounded-lg">
       <h2 className="text-3xl font-bold mb-6 text-purple-700 dark:text-purple-400 text-center">
-        Create Testimonial
+        Edit Testimonial
       </h2>
       {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
@@ -105,7 +139,7 @@ export default function CreateTestimonialPage() {
         {/* Media Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-            Upload Image or Video
+            Upload New Image or Video (optional)
           </label>
           <input
             type="file"
@@ -114,10 +148,10 @@ export default function CreateTestimonialPage() {
             className="w-full border px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 text-black border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-purple-500"
           />
 
-          {/* Preview */}
-          {mediaFile && (
-            <div className="mt-3">
-              {mediaFile.type.startsWith("video/") ? (
+          {/* Preview Section */}
+          <div className="mt-3">
+            {mediaFile ? (
+              mediaFile.type.startsWith("video/") ? (
                 <video
                   src={URL.createObjectURL(mediaFile)}
                   controls
@@ -129,9 +163,27 @@ export default function CreateTestimonialPage() {
                   alt="Preview"
                   className="h-40 w-full object-cover rounded-md"
                 />
-              )}
-            </div>
-          )}
+              )
+            ) : form.media?.url ? (
+              form.media.resource_type === "video" ? (
+                <video
+                  src={form.media.url}
+                  controls
+                  className="h-40 w-full rounded-md"
+                />
+              ) : (
+                <img
+                  src={form.media.url}
+                  alt={form.name}
+                  className="h-40 w-full object-cover rounded-md"
+                />
+              )
+            ) : (
+              <div className="h-40 w-full flex items-center justify-center border-2 border-dashed text-gray-400 rounded-md">
+                No Media Uploaded
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Approved Checkbox */}
@@ -146,11 +198,35 @@ export default function CreateTestimonialPage() {
           <span>Approved</span>
         </label>
 
+        {/* Submit Button */}
         <button
           type="submit"
-          className="w-full py-2 px-4 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+          disabled={submitting}
+          className="w-full py-2 px-4 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center justify-center disabled:opacity-60"
         >
-          Create Testimonial
+          {submitting && (
+            <svg
+              className="animate-spin mr-2 h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg>
+          )}
+          {submitting ? "Editing..." : "Save Changes"}
         </button>
       </form>
     </div>

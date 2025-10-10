@@ -62,13 +62,16 @@ export default function ScholarshipsPage() {
   return (
     <div className="my-10">
       {error && <p className="text-red-500">{error}</p>}
-      <div className="flex space-x-10">
-        <h2 className="text-2xl font-bold mb-4">Scholarships</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-10 mb-6 space-y-3 sm:space-y-0">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          Scholarships
+        </h2>
+
         <Link
-          className="bg-gray-900 py-2 px-2 text-white text-center rounded-2xl items-center"
           href="/scholarships/create"
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition-all duration-200"
         >
-          Create Scholarship
+          + Create Scholarship
         </Link>
       </div>
 

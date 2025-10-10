@@ -62,7 +62,18 @@ export default function TestimonialsPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Testimonials</h2>
+      <div className="flex items-center justify-between mt-12 mb-6">
+        <h2 className="text-3xl font-bold text-black dark:text-gray-300">
+          Testimonials
+        </h2>
+
+        <Link
+          href="/testimonials/create"
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition-all duration-200"
+        >
+          + Create Testimonial
+        </Link>
+      </div>
 
       {error && <p className="text-red-500">{error}</p>}
 
@@ -94,11 +105,13 @@ export default function TestimonialsPage() {
             >
               {t.media?.url ? (
                 t.media.resource_type === "video" ? (
-                  <video
-                    src={t.media.url}
-                    controls
-                    className="h-16 w-16 rounded-full object-cover flex-shrink-0"
-                  />
+                  <div className="flex-shrink-0 w-40 h-60 rounded-lg overflow-hidden bg-black">
+                    <video
+                      src={t.media.url}
+                      controls
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 ) : (
                   <img
                     src={t.media.url}
@@ -137,13 +150,6 @@ export default function TestimonialsPage() {
           ))}
         </ul>
       )}
-
-      <Link
-        className="bg-gray-900 py-1 px-2 text-white text-center rounded-2xl"
-        href="/testimonials/create"
-      >
-        Create Testimonial
-      </Link>
     </div>
   );
 }
