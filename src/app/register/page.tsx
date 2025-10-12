@@ -70,7 +70,7 @@ export default function RegisterPage() {
             required
           />
 
-          {/* <button
+          <button
             type="submit"
             disabled={loading}
             className={`w-full text-white font-semibold py-2 rounded-lg transition ${
@@ -80,16 +80,16 @@ export default function RegisterPage() {
             }`}
           >
             {loading ? "Registering..." : "Register"}
-          </button> */}
+          </button>
 
           {/* 🔒 Disabled button */}
-          <button
+          {/* <button
             type="submit"
             disabled
             className="w-full bg-gray-400 text-white font-semibold py-2 rounded-lg cursor-not-allowed opacity-70"
           >
             Register (Disabled)
-          </button>
+          </button> */}
         </form>
 
         <h3 className="mt-4 text-center text-gray-700 dark:text-gray-300">
